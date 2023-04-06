@@ -1,0 +1,21 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        google()
+        mavenCentral()
+    }
+}
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
+        maven {
+            url "https://packagecloud.io/hernandazevedo/androidmp3recorder/maven2"
+            credentials { username "jp_vl8kagicgicnuqe3gu4dcucg81" }
+        }
+    }
+}
+rootProject.name = "VideoGenerator"
+include ':app'
