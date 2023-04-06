@@ -28,7 +28,7 @@ class TotalVideoGenerator(
         return textGenerator.generateHistory(promt, progress)
             .map { FullInfo(text = it.answer, tags = it.tags, promt = promt) }
             .flatMapLatest { info ->
-                voiceGenerator.generateVoice(info.text!!, "uk-UA", progress)
+                voiceGenerator.generateVoice(info.text!!, "en-US3", progress)
                     .map {
                         info.voice = it.first
                         info.duration = it.second
