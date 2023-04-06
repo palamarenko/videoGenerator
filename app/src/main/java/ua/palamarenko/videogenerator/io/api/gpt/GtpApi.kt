@@ -11,7 +11,7 @@ interface GptApi {
 
 
     @POST("/v1/chat/completions")
-    suspend fun postGpt(@Header("Authorization") token: String = "Bearer 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", @Body body : ChatModel) : ChatCompletion
+    suspend fun postGpt(@Header("Authorization") token: String = "Bearer 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", @Body body : ChatModel) : ChatCompletion
 }
 
 

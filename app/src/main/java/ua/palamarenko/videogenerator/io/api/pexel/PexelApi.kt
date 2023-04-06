@@ -11,7 +11,7 @@ import retrofit2.http.Url
 
 interface PexelApi {
     @GET("/videos/search")
-    suspend fun getVideos(@Header("Authorization") Authorization : String = "GUrFPaiiJ29bS2cEiX0tXCjzlqGhdfaST1Ye9bqsn2hNGW486Dp8v5Zo", @Query("query") query : String) : VideoData
+    suspend fun getVideos(@Header("Authorization") Authorization : String = "GUrFPaiiJ29bS2cEiX0tXCjzlqGhdfaST1Ye9bqsn2hNGW486Dp8v5Zo", @Query("query") query : String, @Query("per_page") page : Int = 80) : VideoData
 
     @GET
     @Streaming

@@ -18,8 +18,11 @@ class GptTextGenerator(val api: GptApi) : MainTextGenerator {
     val startMessage =
         "you should answer only by json format like this - {message:message, tags[]} In message you must put exactly the story that you generated, story mast be with from 50 to 70 words (very important!!) message in query language, and in tags - tags to search for videos on this story, tags only in English. So the query itself is - "
 
+    val test = GenerativeTextData(answer = "Відкриття пеніциліну - одне з найважливіших відкриттів в історії медицини. У 1928 році Олександр Флемінг помітив, що кілька петрівок з бактеріями, які він використовував у своїх експериментах, забув зачистити. На одній з них з'явився грибок, який виявився ефективним у боротьбі з бактеріями. Це було відкриттям пеніциліну. Ця речовина стала першим антибіотиком, який мав широке застосування в лікуванні інфекцій. Відкриття пеніциліну змінило медицину назавжди, дозволяючи лікарям лікувати раніше смертельні хвороби, такі як пневмонія, сепсис та інші інфекції. Воно стало ключовим для розвитку антибіотиків, які допомагають захищати нас від бактерій і інших патогенних мікроорганізмів.", tags = arrayListOf("socks", "lost and found", "puzzling"))
 
     override fun generateHistory(promt: String, progress: MutableStateFlow<ProgressState>): Flow<GenerativeTextData> {
+        return flow { emit(test) }
+
         return flow {
             progress.emit(ProgressState(0, "Text generation start",true))
             val resp = api.postGpt(
@@ -34,4 +37,5 @@ class GptTextGenerator(val api: GptApi) : MainTextGenerator {
             emit(data)
         }.flowOn(Dispatchers.IO)
     }
+
 }

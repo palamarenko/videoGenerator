@@ -19,8 +19,8 @@ class MainCombiner(val context : Context) : Combiner {
     override fun makeFullVideo(info: FullInfo,  progressFlow: MutableStateFlow<ProgressState>): Flow<File> {
         val flow = MutableSharedFlow<File>(replay = 1)
         val result = File(
-            context.filesDir,
-            "final1.mp4"
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+            "final2.mp4"
         )
 
         progressFlow.tryEmit(ProgressState(0, "Adding voice to video", true))

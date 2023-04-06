@@ -4,15 +4,14 @@ import VideoHandle.EpEditor
 import VideoHandle.EpVideo
 import VideoHandle.OnEditorListener
 import android.content.Context
-import android.os.Environment
 import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import ua.palamarenko.videogenerator.io.api.pexel.PexelApi
 import ua.palamarenko.videogenerator.io.api.pexel.Video
@@ -21,11 +20,11 @@ import ua.palamarenko.videogenerator.ui.ProgressState
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
-import java.lang.IllegalStateException
 
 class PexelVideoGenerator(val context : Context, val api: PexelApi) : MainVideoGenerator {
 
-    val videoDuration = 3000L
+    val videoDuration = 4000L
+
 
 
     override fun generateVideo(
@@ -44,7 +43,7 @@ class PexelVideoGenerator(val context : Context, val api: PexelApi) : MainVideoG
 
                     val allVideoCount = (duration / videoDuration).toInt() + 1
 
-                    val list = data.videos.map {
+                    val list = data.videos.filter { it.duration > 20 }.sortedByDescending { it.height }.map {
                         if (currentDuration >= duration) {
                             return@map null
                         }
@@ -90,7 +89,7 @@ class PexelVideoGenerator(val context : Context, val api: PexelApi) : MainVideoG
 
             progress.tryEmit(ProgressState(100, "Video ${currentVideo}/${allVideoCount} saved", true))
         }
-            .flatMapLatest { cropVideo(it, duration) }.onEach {
+            .flatMapLatest { trimVideo(it,video, duration) }.onEach {
                 progress.tryEmit(ProgressState(100, "Video ${currentVideo}/${allVideoCount} croped", true))
             }
     }
@@ -109,6 +108,8 @@ class PexelVideoGenerator(val context : Context, val api: PexelApi) : MainVideoG
         val outputOption = EpEditor.OutputOption(result.absolutePath)
         outputOption.frameRate = 30
         outputOption.bitRate = 10
+        outputOption.setHeight(1920)
+        outputOption.setWidth(1080)
 
         EpEditor.merge(epVideos, outputOption, object : OnEditorListener {
             override fun onSuccess() {
@@ -129,11 +130,48 @@ class PexelVideoGenerator(val context : Context, val api: PexelApi) : MainVideoG
     }
 
 
-    private fun cropVideo(file: File, duration: Long): Flow<File> {
+    private fun cropVideo( video: Video, file : File) : Flow<File>{
         val flow = MutableSharedFlow<File>(replay = 1)
         val output = File(
             context.filesDir,
             "${file.nameWithoutExtension}_crop.mp4"
+        )
+
+
+        val height = if(video.height > 1920f) 1920f else video.height.toFloat()
+        val width = if(video.height > 1920f)1080f else   ( 1080f / 1920f) * video.height
+
+
+        Log.d("HELLO","${video.height} ${video.width} ${height} ${width}")
+
+
+        val epVideo = EpVideo(file.absolutePath)
+        epVideo.crop(width, height, (video.width - width) / 2f, (video.height - height) / 2f)
+        val outputOption = EpEditor.OutputOption(output.absolutePath)
+        outputOption.frameRate = 30
+        outputOption.bitRate = 10
+
+        EpEditor.exec(epVideo, outputOption, object : OnEditorListener {
+            override fun onSuccess() {
+                flow.tryEmit(output)
+            }
+
+            override fun onFailure() {
+
+            }
+
+            override fun onProgress(progress: Float) {}
+
+        })
+
+        return flow
+    }
+
+    private fun trimVideo(file: File,video: Video, duration: Long): Flow<File> {
+        val flow = MutableSharedFlow<File>(replay = 1)
+        val output = File(
+            context.filesDir,
+            "${file.nameWithoutExtension}_trim.mp4"
         )
 
         val epVideo = EpVideo(file.absolutePath)
@@ -141,6 +179,8 @@ class PexelVideoGenerator(val context : Context, val api: PexelApi) : MainVideoG
         val outputOption = EpEditor.OutputOption(output.absolutePath)
         outputOption.frameRate = 30
         outputOption.bitRate = 10
+        outputOption.setHeight(video.height)
+        outputOption.setWidth(video.width)
 
         EpEditor.exec(epVideo, outputOption, object : OnEditorListener {
             override fun onSuccess() {
@@ -182,12 +222,14 @@ class PexelVideoGenerator(val context : Context, val api: PexelApi) : MainVideoG
             return file
 
         } catch (e: IOException) {
-
+            e.printStackTrace()
         }
 
         return null
 
     }
+
+
 
 
 }
