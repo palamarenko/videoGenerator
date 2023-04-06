@@ -49,6 +49,6 @@ val mainModule = module {
     }
 
     single {
-        MainCombiner()
+        MainCombiner(get())
     }
 }

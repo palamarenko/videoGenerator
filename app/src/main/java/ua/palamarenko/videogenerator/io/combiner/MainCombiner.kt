@@ -3,6 +3,7 @@ package ua.palamarenko.videogenerator.io.combiner
 import VideoHandle.EpEditor
 import VideoHandle.EpVideo
 import VideoHandle.OnEditorListener
+import android.content.Context
 import android.os.Environment
 import android.util.Log
 import kotlinx.coroutines.flow.Flow
@@ -12,13 +13,13 @@ import kotlinx.coroutines.flow.flow
 import ua.palamarenko.videogenerator.ui.ProgressState
 import java.io.File
 
-class MainCombiner : Combiner {
+class MainCombiner(val context : Context) : Combiner {
 
 
     override fun makeFullVideo(info: FullInfo,  progressFlow: MutableStateFlow<ProgressState>): Flow<File> {
         val flow = MutableSharedFlow<File>(replay = 1)
         val result = File(
-            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+            context.filesDir,
             "final1.mp4"
         )
 

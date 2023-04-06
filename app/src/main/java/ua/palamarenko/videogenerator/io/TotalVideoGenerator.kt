@@ -23,37 +23,30 @@ class TotalVideoGenerator(
 
 
     fun generateVideo(promt: String, progress: MutableStateFlow<ProgressState>): Flow<File> {
-        return flow {
-            emit(File (
-                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-            "final1.mp4"
-            ))
-        }
 
 
+        return textGenerator.generateHistory(promt, progress)
+            .map { FullInfo(text = it.answer, tags = it.tags, promt = promt) }
+            .flatMapLatest { info ->
+                voiceGenerator.generateVoice(info.text!!, "uk-UA", progress)
+                    .map {
+                        info.voice = it.first
+                        info.duration = it.second
+                        info
+                    }
+            }
+            .flatMapLatest { info ->
+                var promtVideo = ""
+                info.tags!!.forEach {
+                    promtVideo += "$it, "
+                }
 
-//        return textGenerator.generateHistory(promt, progress)
-//            .map { FullInfo(text = it.answer, tags = it.tags, promt = promt) }
-//            .flatMapLatest { info ->
-//                voiceGenerator.generateVoice(info.text!!, "uk-UA", progress)
-//                    .map {
-//                        info.voice = it.first
-//                        info.duration = it.second
-//                        info
-//                    }
-//            }
-//            .flatMapLatest { info ->
-//                var promtVideo = ""
-//                info.tags!!.forEach {
-//                    promtVideo += "$it, "
-//                }
-//
-//                videoGenerator.generateVideo(promtVideo, info.duration!!, progress)
-//                    .map {
-//                        info.video = it
-//                        info
-//                    }
-//            }
-//            .flatMapLatest { combiner.makeFullVideo(it, progress) }
+                videoGenerator.generateVideo(promtVideo, info.duration!!, progress)
+                    .map {
+                        info.video = it
+                        info
+                    }
+            }
+            .flatMapLatest { combiner.makeFullVideo(it, progress) }
     }
 }

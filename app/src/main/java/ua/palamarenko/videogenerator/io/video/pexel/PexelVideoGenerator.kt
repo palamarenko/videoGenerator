@@ -85,9 +85,7 @@ class PexelVideoGenerator(val context : Context, val api: PexelApi) : MainVideoG
         return flow {
             progress.tryEmit(ProgressState(0, "Video ${currentVideo}/${allVideoCount} start save", true))
             emit(
-                saveVideo(video) {
-                    progress.tryEmit(ProgressState(it, "Video ${currentVideo}/${allVideoCount} start save", true))
-                } ?: throw IllegalStateException("Video generate problem")
+                saveVideo(video)?: throw IllegalStateException("Video generate problem")
             )
 
             progress.tryEmit(ProgressState(100, "Video ${currentVideo}/${allVideoCount} saved", true))
@@ -161,21 +159,17 @@ class PexelVideoGenerator(val context : Context, val api: PexelApi) : MainVideoG
     }
 
 
-    private suspend fun saveVideo(video: Video, progress :(Int) -> Unit ): File? {
+    private suspend fun saveVideo(video: Video): File? {
         val link = video.videoFiles[0].link
 
         try {
             val response = api.downloadFile(link)
 
-            val responseBody = ProgressResponseBody(response) { pr ->
-                progress.invoke(pr)
-            }
-
             val file = File(
                 context.filesDir,
                 "${video.id}.mp4"
             )
-            responseBody.byteStream().use { input ->
+            response.byteStream().use { input ->
                 FileOutputStream(file).use { output ->
                     val buffer = ByteArray(4 * 1024)
                     var read: Int

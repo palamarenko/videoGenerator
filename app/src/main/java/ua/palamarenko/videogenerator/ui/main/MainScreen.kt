@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat.startActivity
 import androidx.core.content.FileProvider
 import org.koin.androidx.compose.koinViewModel
+import ua.palamarenko.videogenerator.ui.tools.SharedController
 import java.io.File
 
 
@@ -102,29 +103,8 @@ fun mainScreen(viewModel: GenerateVideoViewModel = koinViewModel()) {
 
 
 private fun shareVideo(file: File, context: Context) {
-    val uri = FileProvider.getUriForFile(
-        context,
-        "ua.palamarenko.videogenerator.fileprovider",
-        file
-    )
-    val shareIntent = Intent(Intent.ACTION_SEND).apply {
-        type = "video/mp4"
-        putExtra(Intent.EXTRA_STREAM, uri)
-    }
 
-    val chooser = Intent.createChooser(shareIntent, "Share File")
 
-    val resInfoList: List<ResolveInfo> =
-        context.getPackageManager().queryIntentActivities(chooser, PackageManager.MATCH_DEFAULT_ONLY)
+    SharedController.shareFile(context,file)
 
-    for (resolveInfo in resInfoList) {
-        val packageName = resolveInfo.activityInfo.packageName
-        context.grantUriPermission(
-            packageName,
-            uri,
-            Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION
-        )
-    }
-
-    context.startActivity(chooser)
 }
